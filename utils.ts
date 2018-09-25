@@ -70,7 +70,7 @@ export function deserialize(encoded_allocation: u32): string {
   }*/
   // Is this doesn't work?
   for (let i = 0; i < length; ++i) {
-    store<u16>(offset + (i << 1), <u16>load<u8>(offset + i), HEADER_SIZE);
+    store<u16>(res + (i << 1), <u16>load<u8>(offset + i), HEADER_SIZE);
   }
   return res;
 }
