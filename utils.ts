@@ -68,7 +68,6 @@ export function deserialize(encoded_allocation: u32): string {
       1
     );
   }*/
-  // Is this doesn't work?
   for (let i = 0; i < length; ++i) {
     store<u16>(res + (i << 1), <u16>load<u8>(offset + i), HEADER_SIZE);
   }
