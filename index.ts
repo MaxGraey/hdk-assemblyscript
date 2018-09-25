@@ -51,44 +51,42 @@ export const enum ErrorCode {
 }
 
 
-
-
 export function debug(message: string): void {
-  let encoded_allocation: u32 = serialize(message);
+  let encoded_allocation = serialize(message);
   // let ptr = u32_high_bits(encoded_allocation);
   env.hc_debug(encoded_allocation);
 }
 
 
-
 export function commit_entry(entryType: string, entryContent: string): string {
-  let jsonEncodedParams: string = `{"entry_type_name":"`+entryType+`","entry_content":"`+entryContent+`"}`;
+  let jsonEncodedParams =
+    '{"entry_type_name":"' + entryType +
+    '","entry_content":"'  + entryContent +
+    '"}';
 
-  let encoded_allocation: u32 = serialize(jsonEncodedParams);
-  let result: u32 = env.hc_commit_entry(encoded_allocation);
-  let errorCode = check_encoded_allocation(result)
+  let encoded_allocation = serialize(jsonEncodedParams);
+  let result = env.hc_commit_entry(encoded_allocation);
+  let errorCode = check_encoded_allocation(result);
 
-  if(errorCode === ErrorCode.Success) {
-    return deserialize(result)
+  if (errorCode == ErrorCode.Success) {
+    return deserialize(result);
   } else {
-    return errorCodeToString(errorCode)
+    return errorCodeToString(errorCode);
   }
-
 }
 
 
-
 export function get_entry(hash: string): string {
-  let jsonEncodedParams: string = `{"key":"`+hash+`"}`;
+  let jsonEncodedParams = '{"key":"' + hash + '"}';
 
-  let encoded_allocation: u32 = serialize(jsonEncodedParams);
-  let result: u32 = env.hc_get_entry(encoded_allocation);
-  let errorCode = check_encoded_allocation(result)
+  let encoded_allocation = serialize(jsonEncodedParams);
+  let result = env.hc_get_entry(encoded_allocation);
+  let errorCode = check_encoded_allocation(result);
 
-  if(errorCode === ErrorCode.Success) {
-    return deserialize(result)
+  if (errorCode == ErrorCode.Success) {
+    return deserialize(result);
   } else {
-    return errorCodeToString(errorCode)
+    return errorCodeToString(errorCode);
   }
 }
 

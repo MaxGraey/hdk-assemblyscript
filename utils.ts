@@ -2,37 +2,37 @@ import "allocator/tlsf";
 import { allocateUnsafe, copyUnsafe, HEADER_SIZE } from "internal/string"
 import { ErrorCode, debug } from "./index"
 
-
+@inline
 export function u32_high_bits(encoded_allocation: u32): u16 {
   // right shift and explicit type cast it
-  let high: u16 = (encoded_allocation >> 16) as u16;
-  return high;
+  return <u16>(encoded_allocation >> 16);
 }
 
 
+@inline
 export function u32_low_bits(encoded_allocation: u32): u16 {
   // type cast and remainder
-  let low: u16 = encoded_allocation as u16 % u16.MAX_VALUE;
-  return low;
+  return encoded_allocation as u16;
 }
 
 // offset, length
+@inline
 export function u32_merge_bits(high: u16, low: u16): u32 {
   // left shift, bitwise or
-  return high as u32 << 16 | (low as u32);
+  return <u32>high << 16 | <u32>low;
 }
 
 
 export function check_encoded_allocation(encoded_allocation: u32): ErrorCode {
-  let offset: u16 = u32_high_bits(encoded_allocation);
-  let length: u16 = u32_low_bits(encoded_allocation);
+  let offset = u32_high_bits(encoded_allocation);
+  let length = u32_low_bits(encoded_allocation);
   if (length == 0) {
     return offset as ErrorCode;
   }
   // switch to u32 from u16
-  let u32offset: u32 = offset;
-  let u32length: u32 = length;
-  let max: u32 = u16.MAX_VALUE;
+  let u32offset = offset as u32;
+  let u32length = length as u32;
+  let max = u16.MAX_VALUE as u32;
   if ((u32offset + u32length) > max) {
     return ErrorCode.PageOverflowError;
   }
@@ -49,7 +49,7 @@ export function serialize(val: string): u32 {
   for (let i = 0; i < dataLength; ++i) {
     store<u16>(ptr + i, val.charCodeAt(i));
   }
-  let encoded_allocation = u32_merge_bits(ptr as u16, dataLength as u16);
+  let encoded_allocation = u32_merge_bits(ptr, dataLength);
   return encoded_allocation;
 }
 
@@ -58,15 +58,19 @@ export function serialize(val: string): u32 {
 export function deserialize(encoded_allocation: u32): string {
   let offset = u32_high_bits(encoded_allocation);
   let length = u32_low_bits(encoded_allocation);
-  let res: string = allocateUnsafe(length);
+  let res    = allocateUnsafe(length);
 
   // TODO: figure out how to do this in a single copy. Need to change boundaries on characters
-  for (let i: u16 = 0; i < length; i++) {
+  /* for (let i = 0; i < length; ++i) {
     memory.copy(
-      changetype<usize>(res) + HEADER_SIZE + (i<<1),
+      changetype<usize>(res) + HEADER_SIZE + (i << 1),
       changetype<usize>(offset) + i,
       1
     );
+  }*/
+  // Is this doesn't work?
+  for (let i = 0; i < length; ++i) {
+    store<u16>(offset + (i << 1), <u16>load<u8>(offset + i), HEADER_SIZE);
   }
   return res;
 }
@@ -78,7 +82,7 @@ export function free(ptr: u32): void {
 
 
 export function errorCodeToString(code: ErrorCode): string {
-  switch(code) {
+  switch (code) {
     case ErrorCode.Success:
       return "Success";
     case ErrorCode.Failure:
