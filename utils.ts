@@ -26,7 +26,7 @@ export function u32_merge_bits(high: u16, low: u16): u32 {
 export function check_encoded_allocation(encoded_allocation: u32): ErrorCode {
   let offset = u32_high_bits(encoded_allocation);
   let length = u32_low_bits(encoded_allocation);
-  if (length == 0) {
+  if (!length) {
     return offset as ErrorCode;
   }
   // switch to u32 from u16
@@ -56,27 +56,18 @@ export function serialize(val: string): u32 {
 
 // reads a string into a new memory allocation that uses the format for asm
 export function deserialize(encoded_allocation: u32): string {
-  let offset = u32_high_bits(encoded_allocation);
+  let offset = u32_high_bits(encoded_allocation) as usize;
   let length = u32_low_bits(encoded_allocation);
-  let res    = allocateUnsafe(length);
-
-  // TODO: figure out how to do this in a single copy. Need to change boundaries on characters
-  /* for (let i = 0; i < length; ++i) {
-    memory.copy(
-      changetype<usize>(res) + HEADER_SIZE + (i << 1),
-      changetype<usize>(offset) + i,
-      1
-    );
-  }*/
+  let res    = allocateUnsafe(length) as usize;
   for (let i = 0; i < length; ++i) {
     store<u16>(res + (i << 1), <u16>load<u8>(offset + i), HEADER_SIZE);
   }
-  return res;
+  return res as string;
 }
 
 
 export function free(ptr: u32): void {
-  memory.free(ptr);
+  if (ptr) memory.free(ptr);
 }
 
 
